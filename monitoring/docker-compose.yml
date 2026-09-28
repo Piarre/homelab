@@ -1,0 +1,47 @@
+name: monitoring
+
+services:
+  qbittorrent-exporter:
+    image: ghcr.io/martabal/qbittorrent-exporter:latest
+    container_name: qbittorrent-exporter
+    environment:
+      - QBITTORRENT_BASE_URL=http://gluetun:8080
+      - QBITTORRENT_API_KEY=${QBITTORRENT_API_KEY}
+    ports:
+      - 8090:8090
+    networks:
+      - seedbox
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+      - seedbox
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=kepa
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    name: monitoring
+    driver: bridge
+  seedbox:
+    external: true

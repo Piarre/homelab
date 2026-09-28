@@ -41,6 +41,7 @@ services:
 
 networks:
   seedbox:
+    name: seedbox
     driver: bridge
     enable_ipv6: true
     ipam:
